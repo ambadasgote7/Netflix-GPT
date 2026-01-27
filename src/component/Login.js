@@ -1,9 +1,32 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import Header from './Header'
+import { validateLoginData, validateSignupData } from '../utils/validate';
 
 const Login = () => {
 
     const [isSignupForm, setIsSignupForm] = useState(true);
+    const [errorMessage, setErrorMessage] = useState(null);
+
+    const fullName = useRef(null);
+    const email = useRef(null);
+    const password = useRef(null);
+
+    const hndleButtonClick = () => {
+        if (isSignupForm) {
+            const message = validateLoginData(email.current.value, password.current.value);
+            setErrorMessage(message);
+            if (!message) {
+                alert("Login Successful");
+            }
+        }
+        if (!isSignupForm) {
+            const message = validateSignupData(fullName.current.value, email.current.value, password.current.value);
+            setErrorMessage(message);
+            if (!message) {
+                alert("Signup Successful");
+            }
+        }
+    }
 
     const handleToggleSignUp = () => {
         setIsSignupForm(!isSignupForm);
@@ -16,22 +39,35 @@ const Login = () => {
             alt="bg-image"
             />
         </div>
-        <form className='w-full md:w-3/12 absolute p-12 bg-black my-36 mx-auto right-0 left-0 text-white rounded-lg bg-opacity-80'>
+        <form 
+        onSubmit={(e) => e.preventDefault()}
+        className='w-full md:w-3/12 absolute p-12 bg-black my-36 mx-auto right-0 left-0 text-white rounded-lg bg-opacity-80'>
             <h1 className='text-3xl font-bold mb-6'>{isSignupForm ? "Sign In" : "Sign Up"}</h1>
 
             {!isSignupForm && (
-                <input type='text' placeholder='Full Name'
-            className="p-4 my-4 w-full bg-gray-700" 
+                <input
+                ref={fullName}
+                type='text' 
+                placeholder='Full Name'
+                className="p-4 my-4 w-full bg-gray-700" 
             />
             )}
 
-            <input type='text' placeholder='Email Address'
+            <input 
+            ref={email}
+            type='text' 
+            placeholder='Email Address'
             className="p-4 my-4 w-full bg-gray-700" 
             />
-            <input type='password' placeholder='Password' 
+            <input 
+            ref={password}
+            type='password' 
+            placeholder='Password' 
             className="p-4 my-4 w-full bg-gray-700"
             />
+            <p className='text-red-600 font-bold py-2'>{errorMessage}</p>
             <button className='bg-red-600 w-full p-4 my-4 font-bold'
+            onClick={hndleButtonClick}
             >
                {isSignupForm ? "Sign In" : "Sign Up"}
             </button>
