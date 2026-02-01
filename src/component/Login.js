@@ -1,30 +1,76 @@
 import React, { useRef, useState } from 'react'
 import Header from './Header'
 import { validateLoginData, validateSignupData } from '../utils/validate';
+import { auth } from '../utils/firebase';
+import {  createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { addUser } from '../utils/userSlice';
+
 
 const Login = () => {
 
     const [isSignupForm, setIsSignupForm] = useState(true);
     const [errorMessage, setErrorMessage] = useState(null);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const fullName = useRef(null);
     const email = useRef(null);
     const password = useRef(null);
 
     const hndleButtonClick = () => {
-        if (isSignupForm) {
-            const message = validateLoginData(email.current.value, password.current.value);
-            setErrorMessage(message);
-            if (!message) {
-                alert("Login Successful");
-            }
-        }
         if (!isSignupForm) {
             const message = validateSignupData(fullName.current.value, email.current.value, password.current.value);
             setErrorMessage(message);
-            if (!message) {
-                alert("Signup Successful");
-            }
+            if (message) return;
+            createUserWithEmailAndPassword(auth, email.current.value, password.current.value)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    console.log(user);
+                    updateProfile(auth.currentUser, {
+                        displayName: fullName.current.value, 
+                        photoURL: "https://avatars.githubusercontent.com/u/34181144?v=4"
+                        }).then(() => {
+                            const { uid, email, displayName, photoURL } = auth.currentUser;
+                            dispatch(
+                                addUser({
+                                    uid,
+                                    email,
+                                    displayName,
+                                    photoURL,
+                                })
+                            );
+                        navigate("/browse");
+                        }).catch((error) => {
+                        // An error occurred
+                        // ...
+                        });
+                   
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    setErrorMessage(errorCode + ": " + errorMessage);
+                });
+
+
+        } else {
+            const message = validateLoginData(email.current.value, password.current.value);
+            setErrorMessage(message);
+            if (message) return;
+            signInWithEmailAndPassword(auth, email.current.value, password.current.value)
+                .then((userCredential) => {
+                    // Signed in 
+                    const user = userCredential.user;
+                    navigate("/browse");
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    setErrorMessage(errorCode + ": " + errorMessage);
+                });
+
         }
     }
 
