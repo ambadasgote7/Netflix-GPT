@@ -1,17 +1,13 @@
-import { useEffect } from "react";
+
 import {
   createBrowserRouter,
   RouterProvider,
-  Outlet,
-  useNavigate
+  Outlet
 } from "react-router-dom";
 import Login from "./Login";
 import Browse from "./Browse";
 import ErrorPage from "./ErrorPage";
-import { auth } from "../utils/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { useDispatch } from "react-redux";
-import { addUser, removeUser } from "../utils/userSlice";
+
 
 /* Root layout */
 const AppLayout = () => {
@@ -39,26 +35,7 @@ const appRouter = createBrowserRouter([
 
 
 const Body = () => {
-  const dispatch = useDispatch();
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const { uid, email, displayName, photoURL } = user;
-        dispatch(
-          addUser({
-            uid,
-            email,
-            displayName,
-            photoURL,
-          })
-        );
-      } else {
-        dispatch(removeUser());
-      }
-    });
-
-    return () => unsubscribe(); // ✅ important
-  }, []);
+  
 
   return <RouterProvider router={appRouter} />;
 };
